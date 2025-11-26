@@ -44,11 +44,19 @@ export async function fetchAllStatuses() {
       }
     })
 
+    // Check if response is actually JSON (not HTML redirect page)
+    const contentType = response.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      console.warn('Server returned non-JSON response. Service might be starting up.')
+      return {}
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 
     const data = await response.json()
+    console.log('Fetched statuses from server:', data)
     return data
   } catch (error) {
     console.error('Error fetching statuses from server:', error)

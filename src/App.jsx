@@ -176,6 +176,8 @@ function App() {
     // Fetch statuses from backend and merge them
     try {
       const statuses = await fetchAllStatuses()
+      console.log('Received statuses from server:', statuses)
+      
       // Recursively merge statuses into features
       const mergeStatuses = (featureList) => {
         return featureList.map(feature => {
@@ -192,15 +194,31 @@ function App() {
       featuresToSet = mergeStatuses(featuresToSet)
       // Save merged data back to localStorage
       db.save(featuresToSet)
+      
+      // Log which features were updated
+      const updatedFeatures = featuresToSet.filter(f => {
+        const hasStatus = statuses[f.id] !== undefined
+        if (hasStatus) {
+          console.log(`Feature "${f.name}" (${f.id}) status: ${statuses[f.id]}`)
+        }
+        return hasStatus
+      })
+      
       if (showNotification) {
         // Show a brief notification that sync completed
-        console.log('Statuses synced from server')
+        const statusCount = Object.keys(statuses).length
+        console.log(`Statuses synced from server (${statusCount} statuses found)`)
+        if (statusCount > 0) {
+          alert(`Synced ${statusCount} status(es) from server. Check console for details.`)
+        } else {
+          alert('No statuses found on server. Make sure the server is running and you have updated a status via API.')
+        }
       }
     } catch (error) {
       console.error('Failed to sync statuses from server:', error)
       // Continue with local data if server is unavailable
       if (showNotification) {
-        alert('Failed to sync with server. The server might be starting up. Please try again in a few seconds.')
+        alert('Failed to sync with server. The server might be starting up. Please try again in a few seconds. Check the browser console for details.')
       }
     }
     
