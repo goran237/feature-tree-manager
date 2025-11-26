@@ -161,7 +161,7 @@ function App() {
     ]
   }
 
-  const loadFromStorage = async () => {
+  const loadFromStorage = async (showNotification = false) => {
     const loaded = db.load()
     let featuresToSet = []
     
@@ -192,12 +192,23 @@ function App() {
       featuresToSet = mergeStatuses(featuresToSet)
       // Save merged data back to localStorage
       db.save(featuresToSet)
+      if (showNotification) {
+        // Show a brief notification that sync completed
+        console.log('Statuses synced from server')
+      }
     } catch (error) {
       console.error('Failed to sync statuses from server:', error)
       // Continue with local data if server is unavailable
+      if (showNotification) {
+        alert('Failed to sync with server. The server might be starting up. Please try again in a few seconds.')
+      }
     }
     
     setFeatures(featuresToSet)
+  }
+
+  const handleRefresh = async () => {
+    await loadFromStorage(true)
   }
 
   const generateId = () => {
@@ -677,9 +688,22 @@ function App() {
     <div className="container">
       <header>
         <h1>Feature Tree Manager</h1>
-        <button className="btn btn-primary" onClick={() => openModal()}>
-          + Add Root Feature
-        </button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={handleRefresh}
+            title="Refresh and sync with server"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 1V4M8 12V15M1 8H4M12 8H15M2.343 2.343L4.464 4.464M11.536 11.536L13.657 13.657M2.343 13.657L4.464 11.536M11.536 4.464L13.657 2.343" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            Refresh
+          </button>
+          <button className="btn btn-primary" onClick={() => openModal()}>
+            + Add Root Feature
+          </button>
+        </div>
       </header>
 
       <div className="main-content">
